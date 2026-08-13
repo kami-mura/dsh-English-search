@@ -3,6 +3,7 @@
 // 依赖 DSH 服务：llm（ctx.get('llm')）、agentDefaultModel（ctx.get('agentDefaultModel')）。
 // 注册 Package 私有方法：lookup（查词）、quick（词源）、question（问答）。
 return {
+  inject: ['llm', 'agentDefaultModel'],
   apply(ctx) {
     const llm = ctx.get('llm')
     const defaults = ctx.get('agentDefaultModel')
