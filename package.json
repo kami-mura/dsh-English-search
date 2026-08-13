@@ -1,0 +1,18 @@
+{
+  "name": "dsh-english-search",
+  "version": "0.1.0",
+  "description": "VocabFlow 风格顶部搜索栏插件（查词/词源/问答），由 DSH 自身 LLM 驱动，无外部站点依赖",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web"
+    }
+  },
+  "license": "MIT"
+}
