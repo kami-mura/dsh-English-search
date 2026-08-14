@@ -4,7 +4,7 @@
 
 ## 功能
 
-- 固定在聊天框最上面的搜索栏（会话头部标题行之上、随头部固定不随消息滚动），样式 1:1 复刻 vocabtool.com：玻璃胶囊搜索框、查词/词源/问答胶囊切换、渐变蓝色 DeepSeek 按钮、暗色主题适配
+- 固定在聊天框最上面的搜索栏（会话列根部常驻：即使没有打开的会话、处于空白/新会话状态也始终显示；有会话时在标题行之上、随列头固定不随消息滚动），样式 1:1 复刻 vocabtool.com：玻璃胶囊搜索框、查词/词源/问答胶囊切换、渐变蓝色 DeepSeek 按钮、暗色主题适配
 - 原有会话头部（标题/面包屑、标准模式、标签页）完整保留在搜索框下方
 - 三种模式，placeholder 随模式切换（与网站一致）：
   - 查词：输入单词，短语或者简短中文（双击可查词）
@@ -19,8 +19,8 @@
 ```
 浏览器 (Client)                            DSH Host
 ┌──────────────────────────┐  fetch   ┌──────────────────────────┐
-│ header.top 插槽          │ ───────► │ webServer 路由            │
-│ 聊天框最上面固定搜索栏     │ POST     │ /api/plugins/english-search│
+│ conversation.top 插槽     │ ───────► │ webServer 路由            │
+│ 聊天框最上面常驻搜索栏     │ POST     │ /api/plugins/english-search│
 │ React + 手写 bundle      │  ◄────── │  → ctx.llm.stream()       │
 └──────────────────────────┘  JSON    │  (当前默认模型, effort=off │
                                       │   失败自动回退无 effort)   │
@@ -28,7 +28,7 @@
 ```
 
 - **Host**（[`lib/index.js`](lib/index.js)）：注册 `webServer` 路由，经 `ctx.get('llm')` + `ctx.get('agentDefaultModel')` 调用 DSH 模型；三套系统提示词与 vocabtool.com 后端一致（源自 MIT 项目 [kami-mura/vocabtool-web](https://github.com/kami-mura/vocabtool-web)）
-- **Client**（[`lib/client.js`](lib/client.js)）：手写 CJS bundle（与 tsdown `clientBundle` 产物同格式：`window.__ModuleLoader__.load({ id, factory })`），注册在 `conversation.session.header.top` 插槽（id `english-search`）——该插槽由 ui-conversation 提供，渲染在会话头部标题行之上；同源 fetch 调用 Host 路由；样式复刻落地页（固定色值 + `prefers-color-scheme` / `data-ds-dark-theme` 暗色适配）
+- **Client**（[`lib/client.js`](lib/client.js)）：手写 CJS bundle（与 tsdown `clientBundle` 产物同格式：`window.__ModuleLoader__.load({ id, factory })`），注册在 `conversation.top` 插槽（id `english-search`）——该插槽由 ui-conversation 提供，挂在会话列根部、无论有无会话都渲染；同源 fetch 调用 Host 路由；样式复刻落地页（固定色值 + `prefers-color-scheme` / `data-ds-dark-theme` 暗色适配）
 - 无外部 HTTP 调用、无 Cookie、无数据库、无本地服务、无构建步骤
 
 ## 安装（原生插件，永久生效）

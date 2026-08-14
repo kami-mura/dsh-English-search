@@ -1,7 +1,7 @@
 // VocabFlow DSH 搜索栏插件 —— Client 半体（动态安装版）
 // 用法：作为 cordis_define 的 code.client 提交（完整函数体，直接粘贴）。
 // v0.3.0 —— 与 lib/client.js 同一套 UI（复刻 vocabtool 搜索框），注册进
-// conversation.session.header.top 插槽（聊天框最上面、原头部保留在其下）。
+// conversation.top 插槽（聊天框最上面常驻，无会话时也显示，原头部保留在其下）。
 // 与 Host 通过 Package 私有 RPC 通信：host.call('lookup'|'quick'|'question', payload)。
 return {
   apply(ctx) {
@@ -175,7 +175,7 @@ return {
     }
 
     styles.insert(
-      '.es-root{--es-bg:#f7f9fd;--es-panel:#ffffff;--es-panel-2:#f5f7fc;--es-text:#152033;--es-muted:#6b7a90;--es-line:#e2e8f2;--es-accent:#007AFF;--es-accent-2:#0A84FF;--es-logo-2:#0A84FF;--es-primary:var(--es-accent);--es-unknown:#e84545;--es-shadow:0 1px 2px rgba(22,40,72,.04),0 8px 28px rgba(22,40,72,.07);--es-shadow-lg:0 12px 40px rgba(28,48,88,.12);--es-lookup-border:rgba(0,122,255,.35);--es-ease:cubic-bezier(.2,.8,.2,1);position:relative;display:flex;flex-direction:column;align-items:center;width:100%;min-width:0;box-sizing:border-box;color:var(--es-text);font-size:15px;line-height:1.8;text-align:left}' +
+      '.es-root{--es-bg:#f7f9fd;--es-panel:#ffffff;--es-panel-2:#f5f7fc;--es-text:#152033;--es-muted:#6b7a90;--es-line:#e2e8f2;--es-accent:#007AFF;--es-accent-2:#0A84FF;--es-logo-2:#0A84FF;--es-primary:var(--es-accent);--es-unknown:#e84545;--es-shadow:0 1px 2px rgba(22,40,72,.04),0 8px 28px rgba(22,40,72,.07);--es-shadow-lg:0 12px 40px rgba(28,48,88,.12);--es-lookup-border:rgba(0,122,255,.35);--es-ease:cubic-bezier(.2,.8,.2,1);position:relative;display:flex;flex-direction:column;align-items:center;width:100%;min-width:0;box-sizing:border-box;padding:12px 28px 0 20px;color:var(--es-text);font-size:15px;line-height:1.8;text-align:left}' +
       'body[data-ds-dark-theme] .es-root{--es-bg:#0f1420;--es-panel:#1a2130;--es-panel-2:#222b3d;--es-text:#e6ecf7;--es-muted:#9aa7bc;--es-line:#2c3850;--es-accent:#0A84FF;--es-accent-2:#409CFF;--es-logo-2:#409CFF;--es-unknown:#ef5d5d;--es-shadow:0 1px 2px rgba(0,0,0,.35),0 8px 28px rgba(0,0,0,.35);--es-shadow-lg:0 12px 40px rgba(0,0,0,.5);--es-lookup-border:rgba(64,156,255,.4)}' +
       '@media (prefers-color-scheme:dark){.es-root{--es-bg:#0f1420;--es-panel:#1a2130;--es-panel-2:#222b3d;--es-text:#e6ecf7;--es-muted:#9aa7bc;--es-line:#2c3850;--es-accent:#0A84FF;--es-accent-2:#409CFF;--es-logo-2:#409CFF;--es-unknown:#ef5d5d;--es-shadow:0 1px 2px rgba(0,0,0,.35),0 8px 28px rgba(0,0,0,.35);--es-shadow-lg:0 12px 40px rgba(0,0,0,.5);--es-lookup-border:rgba(64,156,255,.4)}}' +
       '.es-root .landing-search{display:flex;align-items:center;gap:8px;max-width:560px;width:100%;margin:0 auto 10px;padding:4px;border:1px solid rgba(226,232,242,.9);border-radius:999px;background:rgba(255,255,255,.78);box-shadow:var(--es-shadow-lg),inset 0 1px 0 rgba(255,255,255,.8);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);transition:border-color .25s ease,box-shadow .25s ease,transform .25s var(--es-ease);box-sizing:border-box}' +
@@ -216,8 +216,8 @@ return {
       '@media (max-width:820px){.es-root .landing-search{flex-direction:row;flex-wrap:wrap}.es-root .landing-search-input{min-width:0}.es-root .landing-search button{width:auto;flex:none}.es-root .search-mode{flex:1 1 100%;width:100%;justify-content:center}.es-root .search-mode .search-mode-btn{flex:1 1 0;text-align:center}}',
     )
 
-    slots.inject('conversation.session.header.top', () => slots.register(
-      { name: 'conversation.session.header.top', id: 'english-search', order: -5, label: '英语搜索' },
+    slots.inject('conversation.top', () => slots.register(
+      { name: 'conversation.top', id: 'english-search', order: -5, label: '英语搜索' },
       () => React.createElement(SearchBar),
     ))
   },
