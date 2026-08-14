@@ -1,6 +1,6 @@
 {
   "name": "dsh-english-search",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "VocabFlow 风格顶部搜索栏插件（查词/词源/问答），由 DSH 自身 LLM 驱动，无外部站点依赖",
   "type": "module",
   "main": "lib/index.js",
