@@ -31,16 +31,17 @@
 ## 安装（原生插件，永久生效）
 
 ```bash
-# 1. 安装到 web profile（本地路径或 GitHub）
-dsh plugin --profile web add /path/to/dsh-english-search
-#   或: dsh plugin --profile web add github:kami-mura/dsh-English-search
+dsh plugin --profile web add dsh-english-search
+```
 
-# 2. 在 profile 的 cordis.patch.yml 追加：
-#    - insert:
-#        - id: english-search
-#          name: dsh-english-search
+该包是标准 dsh bundle（`dsh.bundle.patch`），`dsh plugin add` 会自动把它加入
+profile 的层栈（`dsh.profile.bundles`），无需手改任何配置文件；重启 / 刷新
+dsh web 后生效。
 
-# 3. 重启 dsh web 服务，刷新页面
+从 GitHub 安装：
+
+```bash
+dsh plugin --profile web add github:kami-mura/dsh-English-search
 ```
 
 > 依赖 DSH 运行时能力：Host `llm` / `agentDefaultModel` / `webServer` 服务；Client `slots` 服务与 `react` 平台模块（DSH 内置）。包名 `dsh-english-search`（npm 命名规范，全小写）。
