@@ -44,6 +44,12 @@ dsh web 后生效。
 dsh plugin --profile web add github:kami-mura/dsh-English-search
 ```
 
+卸载：
+
+```bash
+dsh plugin --profile web remove dsh-english-search
+```
+
 > 依赖 DSH 运行时能力：Host `llm` / `agentDefaultModel` / `webServer` 服务；Client `slots` 服务与 `react` 平台模块（DSH 内置）。包名 `dsh-english-search`（npm 命名规范，全小写）。
 
 ## 安装（动态插件，快速体验）
