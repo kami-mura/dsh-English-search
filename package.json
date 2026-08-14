@@ -1,3 +1,5 @@
+files before: ['lib', 'cordis.patch.yml', 'README.md', 'LICENSE']
+files after: ['lib', 'cordis.patch.yml', 'README.md', 'LICENSE', 'assets']
 {
   "name": "dsh-english-search",
   "version": "0.4.0",
@@ -21,7 +23,8 @@
     "lib",
     "cordis.patch.yml",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "assets"
   ],
   "keywords": [
     "dsh",
