@@ -1,0 +1,8 @@
+# dsh-english-search bundle patch: mount the VocabFlow-style top search bar
+# into the web GUI. The bundle shape is the official dsh plugin form — install
+# it with:
+#   dsh plugin --profile <name> add dsh-english-search
+- insert:
+    - id: english-search
+      name: dsh-english-search
+      inject: [llm, agentDefaultModel, webServer]
