@@ -35,8 +35,8 @@ dsh plugin --profile web add dsh-english-search
 ```
 
 该包是标准 dsh bundle（`dsh.bundle.patch`），`dsh plugin add` 会自动把它加入
-profile 的层栈（`dsh.profile.bundles`），无需手改任何配置文件；重启 / 刷新
-dsh web 后生效。
+profile 的层栈（`dsh.profile.bundles`），无需手改任何配置文件。安装后必须
+**重启 dsh web 服务**才会生效。
 
 从 GitHub 安装：
 
