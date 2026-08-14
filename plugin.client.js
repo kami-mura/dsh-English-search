@@ -1,6 +1,7 @@
-// VocabFlow DSH 搜索栏插件 —— Client 半体
+// VocabFlow DSH 搜索栏插件 —— Client 半体（动态安装版）
 // 用法：作为 cordis_define 的 code.client 提交（完整函数体，直接粘贴）。
-// 注册插槽：shell.overlay（id: vocabflow-search），顶部固定搜索栏 + 结果面板。
+// v0.3.0 —— 与 lib/client.js 同一套 UI（复刻 vocabtool 搜索框），注册进
+// conversation.session.header.top 插槽（聊天框最上面、原头部保留在其下）。
 // 与 Host 通过 Package 私有 RPC 通信：host.call('lookup'|'quick'|'question', payload)。
 return {
   apply(ctx) {
@@ -44,10 +45,15 @@ return {
     }
 
     const PLACEHOLDERS = {
-      lookup: '输入单词，短语或者简短中文',
+      lookup: '输入单词，短语或者简短中文（双击可查词）',
       etymology: '输入英文单词，查词源，如 arena',
       qa: '输入英语问题，如 lie 和 lay 的区别',
     }
+    const MODES = [
+      ['lookup', '查词'],
+      ['etymology', '词源'],
+      ['qa', '问答'],
+    ]
 
     function SearchBar() {
       const [mode, setMode] = React.useState('lookup')
@@ -57,8 +63,7 @@ return {
       let inputEl = null
       const setInputRef = (el) => { inputEl = el }
 
-      const doSearch = async () => {
-        const raw = text.trim()
+      const runSearch = async (raw) => {
         if (!raw || busy) return
         let m = mode
         let q = raw
@@ -69,7 +74,9 @@ return {
         else if (m === 'etymology') { m = 'quick' }
         else if (m === 'qa') { m = 'qa' }
         if (!q) {
-          setResult({ error: m === 'qa' ? '请输入要问的英语问题' : '请输入要查询的单词' })
+          setResult({ error: m === 'qa'
+            ? '请在 ? 后面输入问题，如：?lie 和 lay 的区别'
+            : '请在 ! 后面输入单词，如：!arena' })
           return
         }
         setBusy(true)
@@ -85,69 +92,82 @@ return {
           setBusy(false)
         }
       }
+      const doSearch = () => runSearch(text.trim())
       const clear = () => { setResult(null); setText(''); if (inputEl) inputEl.focus() }
       const pickMode = (id) => { setMode(id); if (inputEl) inputEl.focus() }
+      const onInputDoubleClick = () => {
+        if (!inputEl || inputEl.selectionStart == null) return
+        const selected = inputEl.value
+          .substring(inputEl.selectionStart, inputEl.selectionEnd)
+          .replace(/\s+/g, ' ')
+          .trim()
+        if (selected && selected.length <= 200) {
+          setText(selected)
+          runSearch(selected)
+        }
+      }
       const showPanel = busy || result !== null
+      let panelClass = 'landing-search-result'
+      if (busy && !result) panelClass += ' loading'
+      if (result && result.error) panelClass += ' error'
 
       return React.createElement(
         'div',
-        { className: 'vf-search' },
+        { className: 'es-root' },
         React.createElement(
-          'div',
-          { className: 'vf-topbar' },
+          'form',
+          { className: 'landing-search', onSubmit: (e) => { e.preventDefault(); doSearch() } },
           React.createElement(
             'div',
-            { className: 'vf-form' },
-            React.createElement(
-              'div',
-              { className: 'vf-mode', role: 'group', 'aria-label': '查询模式' },
-              ['lookup', 'etymology', 'qa'].map((id) => React.createElement(
-                'button',
-                {
-                  key: id,
-                  type: 'button',
-                  className: 'vf-mode-btn' + (mode === id ? ' vf-active' : ''),
-                  'aria-pressed': mode === id,
-                  onClick: () => pickMode(id),
-                },
-                id === 'lookup' ? '查词' : id === 'etymology' ? '词源' : '问答',
-              )),
-            ),
-            React.createElement(
-              'div',
-              { className: 'vf-capsule' },
-              React.createElement('input', {
-                ref: setInputRef,
-                type: 'text',
-                value: text,
-                placeholder: PLACEHOLDERS[mode] || PLACEHOLDERS.lookup,
-                'aria-label': '搜索单词',
-                onChange: (e) => setText(e.target.value),
-                onKeyDown: (e) => {
-                  if (e.key === 'Enter') doSearch()
-                  if (e.key === 'Escape') clear()
-                },
-              }),
-              text
-                ? React.createElement('button', { className: 'vf-clear', type: 'button', 'aria-label': '清空搜索', onClick: () => setText('') }, '×')
-                : null,
-            ),
-            React.createElement('button', { className: 'vf-go', type: 'button', onClick: doSearch, disabled: busy || !text.trim() }, busy ? '查询中' : 'DeepSeek'),
+            { className: 'search-mode', role: 'group', 'aria-label': '查询模式' },
+            MODES.map(([id, label]) => {
+              const active = mode === id
+              return React.createElement('button', {
+                key: id,
+                type: 'button',
+                className: 'search-mode-btn' + (active ? ' active' : ''),
+                'data-search-mode': id,
+                'aria-pressed': active ? 'true' : 'false',
+                onClick: () => pickMode(id),
+              }, label)
+            }),
           ),
+          React.createElement(
+            'div',
+            { className: 'landing-search-input' },
+            React.createElement('input', {
+              ref: setInputRef,
+              type: 'text',
+              name: 'q',
+              value: text,
+              placeholder: PLACEHOLDERS[mode] || PLACEHOLDERS.lookup,
+              'aria-label': '搜索单词',
+              onChange: (e) => setText(e.target.value),
+              onKeyDown: (e) => {
+                if (e.key === 'Enter') doSearch()
+                if (e.key === 'Escape') clear()
+              },
+              onDoubleClick: onInputDoubleClick,
+            }),
+            text
+              ? React.createElement('button', { className: 'landing-clear-btn', type: 'button', 'aria-label': '清空搜索', onClick: () => setText('') }, '×')
+              : null,
+          ),
+          React.createElement('button', { className: 'primary', type: 'submit' }, 'DeepSeek'),
         ),
         showPanel
           ? React.createElement(
               'div',
-              { className: 'vf-panel' },
-              React.createElement('button', { className: 'vf-close', type: 'button', 'aria-label': '关闭结果', onClick: clear }, '×'),
+              { className: panelClass, role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true', 'aria-busy': busy ? 'true' : 'false' },
+              React.createElement('button', { className: 'search-result-close', type: 'button', 'aria-label': '关闭搜索结果', onClick: clear }, '×'),
               busy && !result
-                ? React.createElement('div', { className: 'vf-panel-loading' }, '查询中…')
+                ? React.createElement('div', { className: 'es-panel-loading' }, '查询中…')
                 : null,
               result && result.error
-                ? React.createElement('div', { className: 'vf-panel-error' }, result.error)
+                ? React.createElement('div', { className: 'es-panel-error' }, result.error)
                 : null,
               result && result.text
-                ? React.createElement('div', { className: 'vf-rich', dangerouslySetInnerHTML: { __html: richHtml(result.text) } })
+                ? React.createElement('div', { className: 'es-rich', dangerouslySetInnerHTML: { __html: richHtml(result.text) } })
                 : null,
             )
           : null,
@@ -155,39 +175,49 @@ return {
     }
 
     styles.insert(
-      '.vf-search{--vf-bg:#f7f9fd;--vf-panel:#ffffff;--vf-panel-2:#f5f7fc;--vf-text:#152033;--vf-muted:#6b7a90;--vf-line:#e2e8f2;--vf-accent:#007AFF;--vf-accent-2:#0A84FF;--vf-unknown:#e84545;--vf-shadow:0 1px 2px rgba(22,40,72,.04),0 8px 28px rgba(22,40,72,.07);pointer-events:auto}' +
-      '@media (prefers-color-scheme:dark){.vf-search{--vf-bg:#0f1420;--vf-panel:#1a2130;--vf-panel-2:#222b3d;--vf-text:#e6ecf7;--vf-muted:#9aa7bc;--vf-line:#2c3850;--vf-accent:#0A84FF;--vf-accent-2:#409CFF;--vf-unknown:#ef5d5d;--vf-shadow:0 1px 2px rgba(0,0,0,.35),0 8px 28px rgba(0,0,0,.35)}}' +
-      '.vf-topbar{position:fixed;top:0;left:0;right:0;z-index:9000;background:var(--vf-bg);border-bottom:1px solid var(--vf-line);padding:8px 12px}' +
-      '.vf-form{display:flex;align-items:center;gap:10px;max-width:720px;margin:0 auto}' +
-      '.vf-mode{display:flex;align-items:center;gap:4px;flex:none;padding:4px;border:1px solid var(--vf-line);border-radius:999px;background:var(--vf-panel)}' +
-      '.vf-mode-btn{border:none;background:transparent;color:var(--vf-muted);font-size:14px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;box-shadow:none}' +
-      '.vf-mode-btn:hover{color:var(--vf-text)}' +
-      '.vf-mode-btn.vf-active{background:var(--vf-accent);color:var(--vf-bg)}' +
-      '.vf-capsule{flex:1;min-width:0;display:flex;align-items:center;gap:4px;padding:4px 6px 4px 12px;background:var(--vf-panel);border:1px solid var(--vf-line);border-radius:999px}' +
-      '.vf-capsule:focus-within{border-color:var(--vf-accent);box-shadow:0 0 0 3px rgba(0,0,0,.08)}' +
-      '.vf-capsule input{flex:1;min-width:0;padding:10px 0;font-size:16px;border:none;background:transparent;box-shadow:none;outline:none;color:var(--vf-text)}' +
-      '.vf-capsule input::placeholder{color:var(--vf-muted)}' +
-      '.vf-clear{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;padding:0;border-radius:50%;background:var(--vf-panel-2);color:var(--vf-muted);border:1px solid var(--vf-line);font-size:16px;line-height:1;cursor:pointer}' +
-      '.vf-clear:hover{color:var(--vf-text)}' +
-      '.vf-go{border-radius:999px;padding:13px 24px;font-size:16px;flex:none;border:1px solid var(--vf-accent);background:linear-gradient(135deg,var(--vf-accent) 0%,var(--vf-accent-2) 100%),linear-gradient(115deg,transparent 30%,rgba(255,255,255,.26) 50%,transparent 70%);background-size:100% 100%,220% 100%;background-position:0 0,130% 0;color:#fff;cursor:pointer}' +
-      '.vf-go:hover,.vf-go:active{background:#0a66de;border-color:#0a66de;color:#fff}' +
-      '@media (prefers-color-scheme:dark){.vf-go{background:linear-gradient(135deg,var(--vf-accent) 0%,var(--vf-accent-2) 100%);border-color:var(--vf-accent);color:#fff}.vf-go:hover,.vf-go:active{background:#2f86f0;border-color:#2f86f0;color:#fff}}' +
-      '.vf-go:disabled{opacity:.65;cursor:default}' +
-      '.vf-panel{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:9001;width:min(720px,calc(100% - 24px));max-height:60vh;overflow:auto;padding:16px 20px;padding-right:44px;border-radius:16px;background:var(--vf-panel);border:1px solid var(--vf-line);box-shadow:var(--vf-shadow);color:var(--vf-text);font-size:15px;line-height:1.8;text-align:left}' +
-      '.vf-panel-loading{color:var(--vf-muted)}' +
-      '.vf-panel-error{color:var(--vf-unknown)}' +
-      '.vf-close{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border-radius:50%;background:var(--vf-panel-2);color:var(--vf-muted);border:1px solid var(--vf-line);font-size:15px;line-height:1;cursor:pointer}' +
-      '.vf-close:hover{color:var(--vf-text)}' +
-      '.vf-rich p{margin:0 0 8px}' +
-      '.vf-rich ul,.vf-rich ol{margin:4px 0 10px;padding-left:22px}' +
-      '.vf-rich h2,.vf-rich h3,.vf-rich h4{margin:12px 0 6px;line-height:1.4}' +
-      '.vf-rich blockquote{margin:8px 0;padding:2px 12px;border-left:3px solid var(--vf-accent);color:var(--vf-muted)}' +
-      '.vf-rich code{background:var(--vf-panel-2);border:1px solid var(--vf-line);border-radius:4px;padding:1px 5px;font-size:13px}' +
-      '.vf-rich strong{color:var(--vf-text)}',
+      '.es-root{--es-bg:#f7f9fd;--es-panel:#ffffff;--es-panel-2:#f5f7fc;--es-text:#152033;--es-muted:#6b7a90;--es-line:#e2e8f2;--es-accent:#007AFF;--es-accent-2:#0A84FF;--es-logo-2:#0A84FF;--es-primary:var(--es-accent);--es-unknown:#e84545;--es-shadow:0 1px 2px rgba(22,40,72,.04),0 8px 28px rgba(22,40,72,.07);--es-shadow-lg:0 12px 40px rgba(28,48,88,.12);--es-lookup-border:rgba(0,122,255,.35);--es-ease:cubic-bezier(.2,.8,.2,1);position:relative;display:flex;flex-direction:column;align-items:center;width:100%;min-width:0;box-sizing:border-box;color:var(--es-text);font-size:15px;line-height:1.8;text-align:left}' +
+      'body[data-ds-dark-theme] .es-root{--es-bg:#0f1420;--es-panel:#1a2130;--es-panel-2:#222b3d;--es-text:#e6ecf7;--es-muted:#9aa7bc;--es-line:#2c3850;--es-accent:#0A84FF;--es-accent-2:#409CFF;--es-logo-2:#409CFF;--es-unknown:#ef5d5d;--es-shadow:0 1px 2px rgba(0,0,0,.35),0 8px 28px rgba(0,0,0,.35);--es-shadow-lg:0 12px 40px rgba(0,0,0,.5);--es-lookup-border:rgba(64,156,255,.4)}' +
+      '@media (prefers-color-scheme:dark){.es-root{--es-bg:#0f1420;--es-panel:#1a2130;--es-panel-2:#222b3d;--es-text:#e6ecf7;--es-muted:#9aa7bc;--es-line:#2c3850;--es-accent:#0A84FF;--es-accent-2:#409CFF;--es-logo-2:#409CFF;--es-unknown:#ef5d5d;--es-shadow:0 1px 2px rgba(0,0,0,.35),0 8px 28px rgba(0,0,0,.35);--es-shadow-lg:0 12px 40px rgba(0,0,0,.5);--es-lookup-border:rgba(64,156,255,.4)}}' +
+      '.es-root .landing-search{display:flex;align-items:center;gap:10px;max-width:720px;width:100%;margin:0 auto 12px;padding:6px;border:1px solid rgba(226,232,242,.9);border-radius:999px;background:rgba(255,255,255,.78);box-shadow:var(--es-shadow-lg),inset 0 1px 0 rgba(255,255,255,.8);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);transition:border-color .25s ease,box-shadow .25s ease,transform .25s var(--es-ease);box-sizing:border-box}' +
+      '.es-root .landing-search:focus-within{border-color:rgba(0,122,255,.45);box-shadow:var(--es-shadow-lg),0 0 0 4px rgba(0,122,255,.12);transform:translateY(-1px)}' +
+      'body[data-ds-dark-theme] .es-root .landing-search{background:rgba(26,33,48,.82);border-color:rgba(44,56,80,.9)}' +
+      '@media (prefers-color-scheme:dark){.es-root .landing-search{background:rgba(26,33,48,.82);border-color:rgba(44,56,80,.9)}}' +
+      '.es-root .landing-search-input{flex:1;min-width:0;display:flex;align-items:center;gap:4px;padding:4px 6px 4px 12px;background:var(--es-panel);border:1px solid var(--es-line);border-radius:999px}' +
+      '.es-root .landing-search-input:focus-within{border-color:var(--es-accent);box-shadow:0 0 0 3px rgba(0,0,0,.08)}' +
+      '.es-root .landing-search input{flex:1;min-width:0;padding:10px 0;font-size:16px;border:none;background:transparent;box-shadow:none;outline:none;color:var(--es-text)}' +
+      '.es-root .landing-search input::placeholder{color:var(--es-muted)}' +
+      '.es-root .landing-search input:-webkit-autofill,.es-root .landing-search input:-webkit-autofill:hover,.es-root .landing-search input:-webkit-autofill:focus{background-color:var(--es-panel)!important;-webkit-box-shadow:0 0 0 1000px var(--es-panel) inset!important;-webkit-text-fill-color:var(--es-text)!important}' +
+      '.es-root .landing-search .landing-clear-btn{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;padding:0;border-radius:50%;background:var(--es-panel-2);color:var(--es-muted);border:1px solid var(--es-line);font-size:16px;line-height:1;cursor:pointer}' +
+      '.es-root .landing-search .landing-clear-btn{border-color:transparent;background:rgba(238,242,250,.85)}' +
+      '.es-root .landing-search .landing-clear-btn:hover{background:rgba(0,122,255,.08);color:var(--es-text)}' +
+      'body[data-ds-dark-theme] .es-root .landing-search .landing-clear-btn{background:rgba(44,56,80,.55)}' +
+      '@media (prefers-color-scheme:dark){.es-root .landing-search .landing-clear-btn{background:rgba(44,56,80,.55)}}' +
+      '.es-root .search-mode{display:flex;align-items:center;gap:4px;flex:none;padding:4px;border:1px solid var(--es-line);border-radius:999px;background:var(--es-panel)}' +
+      '.es-root .search-mode-btn{border:none;background:transparent;color:var(--es-muted);font-size:14px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;box-shadow:none}' +
+      '.es-root .search-mode-btn:hover{color:var(--es-text)}' +
+      '.es-root .search-mode-btn.active{background:var(--es-primary);color:var(--es-bg)}' +
+      '.es-root .landing-search button{border-radius:999px;padding:13px 24px;font-size:16px;flex:none;cursor:pointer}' +
+      '.es-root .landing-search .primary{background:var(--es-accent);background-image:linear-gradient(135deg,var(--es-accent) 0%,var(--es-logo-2) 100%),linear-gradient(115deg,transparent 30%,rgba(255,255,255,.26) 50%,transparent 70%);background-size:100% 100%,220% 100%;background-position:0 0,130% 0;border:1px solid var(--es-accent);color:#ffffff;box-shadow:none}' +
+      '.es-root .landing-search .primary:hover,.es-root .landing-search .primary:active{background:#0a66de;background-image:none;border-color:#0a66de;color:#ffffff;box-shadow:none}' +
+      'body[data-ds-dark-theme] .es-root .landing-search .primary{background:var(--es-accent);background-image:linear-gradient(135deg,var(--es-accent) 0%,var(--es-accent-2) 100%);border-color:var(--es-accent);color:#ffffff}' +
+      'body[data-ds-dark-theme] .es-root .landing-search .primary:hover,body[data-ds-dark-theme] .es-root .landing-search .primary:active{background:#2f86f0;background-image:none;border-color:#2f86f0;color:#ffffff}' +
+      '@media (prefers-color-scheme:dark){.es-root .landing-search .primary{background:var(--es-accent);background-image:linear-gradient(135deg,var(--es-accent) 0%,var(--es-accent-2) 100%);border-color:var(--es-accent);color:#ffffff}.es-root .landing-search .primary:hover,.es-root .landing-search .primary:active{background:#2f86f0;background-image:none;border-color:#2f86f0;color:#ffffff}}' +
+      '.es-root .landing-search-result{position:relative;width:min(720px,100%);max-width:720px;margin:0 auto 10px;padding:16px 20px;padding-right:44px;border-radius:16px;background:var(--es-panel);border:2px solid var(--es-lookup-border);box-shadow:var(--es-shadow);color:var(--es-text);font-size:15px;line-height:1.8;text-align:left;white-space:pre-wrap;max-height:55vh;overflow:auto;box-sizing:border-box}' +
+      '.es-root .landing-search-result.loading{color:var(--es-muted)}' +
+      '.es-root .landing-search-result.error{color:var(--es-unknown)}' +
+      '.es-root .search-result-close{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border-radius:50%;background:var(--es-panel-2);color:var(--es-muted);border:1px solid var(--es-line);font-size:15px;line-height:1;cursor:pointer}' +
+      '.es-root .search-result-close:hover{color:var(--es-text)}' +
+      '.es-root .es-rich p{margin:0 0 8px}' +
+      '.es-root .es-rich ul,.es-root .es-rich ol{margin:4px 0 10px;padding-left:22px}' +
+      '.es-root .es-rich h2,.es-root .es-rich h3,.es-root .es-rich h4{margin:12px 0 6px;line-height:1.4}' +
+      '.es-root .es-rich blockquote{margin:8px 0;padding:2px 12px;border-left:3px solid var(--es-accent);color:var(--es-muted)}' +
+      '.es-root .es-rich code{background:var(--es-panel-2);border:1px solid var(--es-line);border-radius:4px;padding:1px 5px;font-size:13px}' +
+      '.es-root .es-rich strong{color:var(--es-text)}' +
+      '@media (max-width:820px){.es-root .landing-search{flex-direction:row;flex-wrap:wrap}.es-root .landing-search-input{min-width:0}.es-root .landing-search button{width:auto;flex:none}.es-root .search-mode{flex:1 1 100%;width:100%;justify-content:center}.es-root .search-mode-btn{flex:1 1 0;text-align:center}}',
     )
 
-    slots.inject('shell.overlay', () => slots.register(
-      { name: 'shell.overlay', id: 'vocabflow-search' },
+    slots.inject('conversation.session.header.top', () => slots.register(
+      { name: 'conversation.session.header.top', id: 'english-search', order: -5, label: '英语搜索' },
       () => React.createElement(SearchBar),
     ))
   },
