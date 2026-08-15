@@ -10,6 +10,8 @@
 dsh plugin --profile web add dsh-english-search
 ```
 
+安装后需**重启 dsh web 服务**生效。
+
 ## 卸载
 
 ```bash
@@ -78,7 +80,9 @@ dsh plugin --profile web add github:kami-mura/dsh-English-search
    dsh plugin --profile web add dsh-english-search@latest
    ```
 
-2. 如果仍不显示，查看浏览器开发者控制台是否有 `english-search` 相关报错，并确认服务启动日志中无插件报错。
+2. **重启 dsh web 服务**：安装/升级插件后需重启服务进程（不是刷新浏览器页面）。按 `Ctrl+C` 停止当前 `dsh web`，再重新运行 `dsh web`。
+
+3. 如果仍不显示，查看浏览器开发者控制台是否有 `english-search` 相关报错，并确认服务启动日志中无插件报错。
 
 ### 动态版与原生版显示位置不同？
 
