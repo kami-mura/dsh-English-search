@@ -65,6 +65,26 @@ dsh plugin --profile web remove dsh-english-search
 
 动态插件运行环境不提供 `react-dom`，所以动态版显示在输入框上方；通过 npm/GitHub 安装的原生插件才固定在会话区域最上方。
 
+## 常见问题
+
+### 安装后看不到搜索框？
+
+按顺序排查：
+
+1. **确认版本 ≥ 0.4.2**：运行 `dsh plugin --profile web list` 查看已安装版本。0.4.0 及更早版本使用 `conversation.top` 插槽，而 DSH 0.1.0-rc.6 不存在该插槽，搜索框不会渲染——这是 0.4.2 修复的兼容问题，请升级：
+
+   ```bash
+   dsh plugin --profile web add dsh-english-search@latest
+   ```
+
+2. **必须重启 dsh web 服务**：安装/升级插件后要重启服务进程（不是刷新浏览器页面）。按 `Ctrl+C` 停止当前 `dsh web`，再重新运行 `dsh web`。
+
+3. 如果仍不显示，查看浏览器开发者控制台是否有 `english-search` 相关报错，并确认服务启动日志中无插件报错。
+
+### 动态版与原生版显示位置不同？
+
+动态版（`cordis_define` 方式）运行环境不提供 `react-dom`，搜索框显示在输入框上方；通过 npm/GitHub 安装的原生插件才固定在会话区域最上方。
+
 ## 文件
 
 | 文件 | 说明 |
