@@ -34,6 +34,8 @@ test('client bundle declares the slots service', () => {
 test('client bundle mounts into the input dock supported by DSH rc.6', () => {
   let handoff
   const injected = []
+  let registeredComponent
+  const conversationRoot = {}
   const context = {
     window: {
       __ModuleLoader__: {
@@ -49,20 +51,41 @@ test('client bundle mounts into the input dock supported by DSH rc.6', () => {
       head: {
         appendChild() {},
       },
+      querySelector() {
+        return { parentElement: conversationRoot }
+      },
     },
   }
   vm.runInNewContext(clientCode, context)
-  const plugin = handoff.factory(() => ({}))
+  const React = {
+    createElement(type) {
+      return { type }
+    },
+  }
+  const ReactDOM = {
+    createPortal(child, target) {
+      return { child, target }
+    },
+  }
+  const plugin = handoff.factory((specifier) => specifier === 'react' ? React : ReactDOM)
   plugin.apply({
     effect() {},
     get() {
       return {
-        inject(name) {
+        inject(name, register) {
           injected.push(name)
+          register()
+        },
+        register(_options, component) {
+          registeredComponent = component
+          return () => {}
         },
       }
     },
   })
 
   assert.deepEqual(injected, ['conversation.input.dock'])
+  const portal = registeredComponent()
+  assert.equal(portal.target, conversationRoot)
+  assert.equal(typeof portal.child.type, 'function')
 })

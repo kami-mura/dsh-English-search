@@ -1,7 +1,7 @@
 // VocabFlow DSH 搜索栏插件 —— Client 半体（动态安装版）
 // 用法：作为 cordis_define 的 code.client 提交（完整函数体，直接粘贴）。
-// v0.4.1 —— 与 lib/client.js 同一套 UI（DSH 原生令牌风格搜索栏），注册进
-// conversation.input.dock 插槽（输入框卡片上方的全宽独立行）。
+// v0.4.2 —— 动态运行环境不提供 react-dom，保留在 conversation.input.dock；
+// npm 原生插件由 lib/client.js 通过 React Portal 固定到会话区域最上方。
 // 与 Host 通过 Package 私有 RPC 通信：host.call('lookup'|'quick'|'question', payload)。
 return {
   inject: ['slots'],

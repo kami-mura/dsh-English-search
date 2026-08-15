@@ -1,7 +1,7 @@
 {
   "name": "dsh-english-search",
-  "version": "0.4.1",
-  "description": "DSH 原生风格搜索栏插件（查词/词源/问答），显示在输入框上方，由 DSH 自身 LLM 驱动，无外部站点依赖",
+  "version": "0.4.2",
+  "description": "DSH 原生风格顶部搜索栏插件（查词/词源/问答），固定在会话区域最上方，由 DSH 自身 LLM 驱动，无外部站点依赖",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
