@@ -1,9 +1,10 @@
 // VocabFlow DSH 搜索栏插件 —— Client 半体（动态安装版）
 // 用法：作为 cordis_define 的 code.client 提交（完整函数体，直接粘贴）。
-// v0.4.0 —— 与 lib/client.js 同一套 UI（DSH 原生令牌风格搜索栏），注册进
-// conversation.top 插槽（聊天框最上面常驻，无会话时也显示，原头部保留在其下）。
+// v0.4.1 —— 与 lib/client.js 同一套 UI（DSH 原生令牌风格搜索栏），注册进
+// conversation.input.dock 插槽（输入框卡片上方的全宽独立行）。
 // 与 Host 通过 Package 私有 RPC 通信：host.call('lookup'|'quick'|'question', payload)。
 return {
+  inject: ['slots'],
   apply(ctx) {
     const slots = ctx.get('slots')
     if (slots === undefined) return
@@ -202,8 +203,8 @@ return {
       '@media (max-width:820px){.es-root .landing-search{flex-wrap:wrap}.es-root .search-mode{flex:1 1 100%;order:-1;justify-content:center}.es-root .search-mode .search-mode-btn{flex:1 1 0;text-align:center}}',
     )
 
-    slots.inject('conversation.top', () => slots.register(
-      { name: 'conversation.top', id: 'english-search', order: -5, label: '英语搜索' },
+    slots.inject('conversation.input.dock', () => slots.register(
+      { name: 'conversation.input.dock', id: 'english-search', order: -5, label: '英语搜索' },
       () => React.createElement(SearchBar),
     ))
   },
