@@ -4,6 +4,18 @@
 
 ![效果截图](assets/screenshot.jpg)
 
+## 安装
+
+```bash
+dsh plugin --profile web add dsh-english-search
+```
+
+## 卸载
+
+```bash
+dsh plugin --profile web remove dsh-english-search
+```
+
 ## 功能
 
 - 固定在会话区域最上方、独立于消息滚动区的搜索栏，使用 DSH WebUI 原生设计令牌（`--dsw-alias-*`），与输入框卡片同表面、同描边、同圆角、同阴影：查词/词源/问答文字切换 + 紧凑原生「查询」小胶囊，明暗主题自动跟随，无玻璃拟态、无渐变按钮；搜索栏宽度收窄为 520px（`--es-bar-max-width`）
@@ -30,26 +42,15 @@
 - **Client**（[`lib/client.js`](lib/client.js)）：手写 CJS bundle（与 tsdown `clientBundle` 产物同格式：`window.__ModuleLoader__.load({ id, factory })`），注册在 `conversation.input.dock` 插槽（id `english-search`），再通过 React Portal 固定到会话根节点顶部；同源 fetch 调用 Host 路由；样式全部使用 DSH WebUI 设计令牌（`--dsw-alias-*` / `--dsw-specific-input-major` / `--dsw-shadow-lv2` / `--dsw-font-family`）并复用 `--dsh-composer-*` 宽度轴，与输入框卡片视觉一致、明暗主题自动跟随
 - 无外部 HTTP 调用、无 Cookie、无数据库、无本地服务、无构建步骤
 
-## 安装（原生插件，永久生效）
-
-```bash
-dsh plugin --profile web add dsh-english-search
-```
+## 安装说明
 
 该包是标准 dsh bundle（`dsh.bundle.patch`），`dsh plugin add` 会自动把它加入
-profile 的层栈（`dsh.profile.bundles`），无需手改任何配置文件。安装后必须
-**重启 dsh web 服务**才会生效。
+profile 的层栈（`dsh.profile.bundles`），无需手改任何配置文件。
 
 从 GitHub 安装：
 
 ```bash
 dsh plugin --profile web add github:kami-mura/dsh-English-search
-```
-
-卸载：
-
-```bash
-dsh plugin --profile web remove dsh-english-search
 ```
 
 > 依赖 DSH 运行时能力：Host `llm` / `agentDefaultModel` / `webServer` 服务；Client `slots` 服务与 `react` 平台模块（DSH 内置）。包名 `dsh-english-search`（npm 命名规范，全小写）。
@@ -77,9 +78,7 @@ dsh plugin --profile web remove dsh-english-search
    dsh plugin --profile web add dsh-english-search@latest
    ```
 
-2. **必须重启 dsh web 服务**：安装/升级插件后要重启服务进程（不是刷新浏览器页面）。按 `Ctrl+C` 停止当前 `dsh web`，再重新运行 `dsh web`。
-
-3. 如果仍不显示，查看浏览器开发者控制台是否有 `english-search` 相关报错，并确认服务启动日志中无插件报错。
+2. 如果仍不显示，查看浏览器开发者控制台是否有 `english-search` 相关报错，并确认服务启动日志中无插件报错。
 
 ### 动态版与原生版显示位置不同？
 
